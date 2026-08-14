@@ -77,8 +77,8 @@ tr:hover td{background:rgba(255,255,255,0.03)}
   <div class="hero">
     <div class="hero-badge">開放 API 實戰 · 2026-08-14</div>
     <h1>夸克網盤 × Google Drive 自動同步 · 101 教學</h1>
-    <p>用兩邊嘅開放 API 做指定 Folder 同步 · 單向 / 雙向都做到<br>事前準備、工作原理、系統負荷、實戰腳本、cron 排程 —— 一次過講清</p>
-    <div class="disclaimer">⚡ 本教學基於 2026-08-14 實測（夸克網盤官方 Skill v1.0.11 + Google Drive API）。所有步驟都要用真實帳號授權，唔涉及任何第三方收費服務。</div>
+    <p>用兩哪的開放 API 做指定 Folder 同步 · 單向 / 雙向都做到<br>事前準備、工作原理、系統負荷、實戰腳本、cron 排程 —— 一次過講清</p>
+    <div class="disclaimer">⚡ 本教學基於 2026-08-14 實測（夸克網盤官方 Skill v1.0.11 + Google Drive API）。所有步驟都要用真實帳號授權，不涉及任何第三方收費服務。</div>
   </div>
 
   <!-- 目錄 -->
@@ -100,8 +100,8 @@ tr:hover td{background:rgba(255,255,255,0.03)}
 
   <!-- 0. 架構 -->
   <div class="section" id="arch">
-    <h2 class="section-title"><span class="num">0</span> 點解要咁做（架構概覽）</h2>
-    <p class="section-desc">Google Drive 同夸克網盤都開放 API，但兩邊係唔同嘅雲端，冇直接互傳通道。同步嘅本質 = 一部中間機器（VM）定時「睇住兩邊 → 對比 → 補齊」。用嘅係兩邊官方開放 API，$0 成本，唔使任何第三方中介。</p>
+    <h2 class="section-title"><span class="num">0</span> 為何這樣做（架構概覽）</h2>
+    <p class="section-desc">Google Drive 同夸克網盤都開放 API，但兩哪係不同的雲端，沒有直接互傳通道。同步的本質 = 一部中間機器（VM）定時「查看兩哪 → 對比 → 補齊」。用的係兩哪官方開放 API，$0 成本，不使任何第三方中介。</p>
 
     <div class="arch-flow">
       <span>Google Drive Folder</span><span class="arrow">→</span>
@@ -110,12 +110,12 @@ tr:hover td{background:rgba(255,255,255,0.03)}
       <span>夸克開放 API (upload)</span><span class="arrow">→</span>
       <span>夸克網盤 Folder</span>
     </div>
-    <p style="font-size:13px;color:var(--dim);text-align:center;margin-bottom:20px">反向同步（夸克 → GDrive）就係條鏈調轉行；雙向同步 = 兩條鏈同時行 + 衝突規則。</p>
+    <p style="font-size:13px;color:var(--dim);text-align:center;margin-bottom:20px">反向同步（夸克 → GDrive）就是將鏈路反向；雙向同步 = 兩條鏈路同時執行 + 衝突規則。</p>
 
     <div class="feature-grid">
-      <div class="feature-card"><div class="f-icon">🔁</div><h3>自動對比</h3><p>定時 list 兩邊檔案，檔名 + 大小 + 修改時間 diff，有缺有變先傳</p></div>
-      <div class="feature-card"><div class="f-icon">💻</div><h3>VM 中轉</h3><p>冇 server-to-server 直傳，檔案一定要經中間機暫存再上傳</p></div>
-      <div class="feature-card"><div class="f-icon">💰</div><h3>完全免費</h3><p>兩邊 API 都唔收費（有免費額度），VM 用 Oracle Always Free 都夠跑</p></div>
+      <div class="feature-card"><div class="f-icon">🔁</div><h3>自動對比</h3><p>定時 list 兩哪檔案，檔名 + 大小 + 修改時間 diff，有缺有變先傳</p></div>
+      <div class="feature-card"><div class="f-icon">💻</div><h3>VM 中轉</h3><p>沒有 server-to-server 直傳，檔案一定要經中間機暫存再上傳</p></div>
+      <div class="feature-card"><div class="f-icon">💰</div><h3>完全免費</h3><p>兩哪 API 都不收費（有免費額度），VM 用 Oracle Always Free 都夠跑</p></div>
       <div class="feature-card"><div class="f-icon">🎛️</div><h3>幾種模式</h3><p>單向備份 / 單向歸檔 / 雙向同步，folder 自訂，頻率自訂</p></div>
     </div>
   </div>
@@ -123,7 +123,7 @@ tr:hover td{background:rgba(255,255,255,0.03)}
   <!-- 1. 事前準備 -->
   <div class="section" id="prep">
     <h2 class="section-title"><span class="num">1</span> 事前準備（文件清單）</h2>
-    <p class="section-desc">開始之前，逐項準備好下面嘅帳號同工具。大部分你已經有 —— 唔使買任何嘢。</p>
+    <p class="section-desc">開始之前，逐項準備好下面的帳號同工具。大部分你已經有 —— 不使買任何東西。</p>
 
     <div class="table-wrap">
     <table>
@@ -131,31 +131,31 @@ tr:hover td{background:rgba(255,255,255,0.03)}
       <tr><td>夸克網盤帳號</td><td>pan.quark.cn 註冊（APP / 網頁都得，免費 10GB）</td><td>同步目標 / 來源之一</td></tr>
       <tr><td>Google 帳號 + Drive</td><td>普通 Gmail 帳號 + 有 Drive 空間</td><td>同步目標 / 來源之一</td></tr>
       <tr><td>Google Cloud OAuth 憑證</td><td>Google Cloud Console → APIs &amp; Services → OAuth Client ID（Desktop 類型），下載 JSON</td><td>GDrive API 授權（client_id / client_secret）</td></tr>
-      <tr><td>Linux VM</td><td>Oracle Always Free ARM（2 OCPU / 12GB）或任何有 Node ≥16 嘅機</td><td>行 sync script + cron</td></tr>
-      <tr><td>Node.js ≥ 16</td><td><code>node --version</code> 檢查，冇就裝</td><td>夸克官方 CLI 需要</td></tr>
+      <tr><td>Linux VM</td><td>Oracle Always Free ARM（2 OCPU / 12GB）或任何有 Node ≥16 的機</td><td>行 sync script + cron</td></tr>
+      <tr><td>Node.js ≥ 16</td><td><code>node --version</code> 檢查，沒有就裝</td><td>夸克官方 CLI 需要</td></tr>
       <tr><td>夸克網盤 Skill（官方 zip）</td><td>官方下載：<code>quarkclouddrive-1.0.11.zip</code></td><td>夸克 API CLI（search / upload / download）</td></tr>
       <tr><td>gws CLI 或 google_api.py</td><td>Hermes google-workspace skill 內置，或用 gcloud 生態工具</td><td>GDrive API 操作</td></tr>
     </table>
     </div>
 
-    <div class="tip green">全部就緒後，由安裝到第一次同步成功，約 15–30 分鐘（視乎你熟唔熟 OAuth）。</div>
+    <div class="tip green">全部就緒後，由安裝到第一次同步成功，約 15–30 分鐘（視乎你熟不熟 OAuth）。</div>
   </div>
 
   <!-- 2. 安裝夸克 Skill -->
   <div class="section" id="quark">
     <h2 class="section-title"><span class="num">2</span> 安裝夸克網盤 Skill</h2>
-    <p class="section-desc">夸克官方發佈咗一個命令行 Skill（Skill 包 = SKILL.md + scripts + references），入面嘅 <code>quark-drive.cjs</code> 就係完整 CLI，包晒檔案上傳/下載/搜尋/分享。</p>
+    <p class="section-desc">夸克官方發佈了一個命令行 Skill（Skill 包 = SKILL.md + scripts + references），入面的 <code>quark-drive.cjs</code> 就是完整 CLI，包晒檔案上傳/下載/搜尋/分享。</p>
 
     <div class="step-list" style="counter-reset:step 0">
       <div class="step-item">
         <h3>下載官方 Skill zip</h3>
         <div class="cmd">curl -sL -o quark-skill.zip "https://pdds.quark.cn/download/stfile/ssyytvtxsstwsu8uo/quarkclouddrive-1.0.11.zip"</div>
-        <p>呢個係夸克官方 pdds 分發網址，zip 內含 <code>SKILL.md</code>、<code>scripts/</code>（CLI）、<code>references/</code>（操作文件）。</p>
+        <p>這個係夸克官方 pdds 分發網址，zip 內含 <code>SKILL.md</code>、<code>scripts/</code>（CLI）、<code>references/</code>（操作文件）。</p>
       </div>
       <div class="step-item">
         <h3>安裝去 agent 全局 skills 目錄</h3>
         <div class="cmd">unzip -qo quark-skill.zip -d ~/.hermes/skills/quarkclouddrive</div>
-        <p>放喺全局目錄（唔好放項目目錄），任何項目都用得。</p>
+        <p>放在全局目錄（不要放在項目目錄），任何項目都能用。</p>
       </div>
       <div class="step-item">
         <h3>驗證 CLI</h3>
@@ -169,53 +169,53 @@ tr:hover td{background:rgba(255,255,255,0.03)}
   <!-- 3. 授權夸克 -->
   <div class="section" id="auth-quark">
     <h2 class="section-title"><span class="num">3</span> 授權夸克網盤帳號</h2>
-    <p class="section-desc">CLI 用夸克開放平台 OAuth 授權。喺普通桌面機一跑 <code>login</code> 就會自動開瀏覽器；但喺無桌面嘅 server（例如 Oracle VM）就要用下面流程。</p>
+    <p class="section-desc">CLI 用夸克開放平台 OAuth 授權。在普通桌面機一跑 <code>login</code> 就會自動開瀏覽器；但在無桌面的 server（例如 Oracle VM）就要用下面流程。</p>
 
     <div class="step-list" style="counter-reset:step 0">
       <div class="step-item">
-        <h3>起 login，攞授權連結</h3>
+        <h3>起 login，拿授權連結</h3>
         <div class="cmd">node scripts/quark-drive.cjs login</div>
-        <p>喺無 browser 嘅環境，命令會即時 fail，但<strong>錯誤訊息入面有一條完整授權 URL</strong>（開頭係 <code>https://pan.quark.cn/open/v1/oauth/agent?...</code>）。複製佢。</p>
+        <p>在無 browser 的環境，命令會即時 fail，但<strong>錯誤訊息入面有一條完整授權 URL</strong>（開頭係 <code>https://pan.quark.cn/open/v1/oauth/agent?...</code>）。複製它。</p>
       </div>
       <div class="step-item">
-        <h3>喺手機 / 電腦開條連結完成授權</h3>
-        <p>用夸克網盤 APP 掃 QR code，或者瀏覽器開條連結登入 → 點「授權」。授權頁會顯示一個 <strong>授權碼（格式 <code>AAC-xxxx...</code>）</strong>，複製佢。</p>
+        <h3>在手機 / 電腦開條連結完成授權</h3>
+        <p>用夸克網盤 APP 掃 QR code，或者瀏覽器開連結登入 → 點擊「授權」。授權頁會顯示一個 <strong>授權碼（格式 <code>AAC-xxxx...</code>）</strong>，複製它。</p>
       </div>
       <div class="step-item">
         <h3>用授權碼完成綁定</h3>
-        <div class="cmd">node scripts/quark-drive.cjs login --token "AAC-你喺授權頁複製嘅授權碼"
+        <div class="cmd">node scripts/quark-drive.cjs login --token "AAC-你在授權頁複製的授權碼"
 # 輸出: {"code":0,"msg":"成功","data":{"userId":"your_user_id"}}</div>
         <p><code>code:0</code> 即成功，access token 已存本地（之後所有命令自動用）。</p>
       </div>
       <div class="step-item">
         <h3>驗證</h3>
         <div class="cmd">node scripts/quark-drive.cjs search --keyword "test"
-# 輸出 file_list = 你網盤嘅檔案</div>
+# 輸出 file_list = 你網盤的檔案</div>
         <p>搜到檔案 = 授權有效。常用命令：<code>search</code>（搜尋）、<code>upload</code>、<code>download</code>、<code>create-folder</code>、<code>share</code>。</p>
       </div>
     </div>
 
-    <div class="tip info">授權碼有效期約 10 分鐘，逾時就重新行一次 <code>login</code> 攞新連結。授權過一次之後，refresh token 自動續期，唔使再搞。</div>
-    <div class="tip warn">⚠️ <code>~/.hermes/skills/quarkclouddrive/</code> 內會存 access token —— 呢個係敏感資料，公開 repo / 備份前一定要排除。</div>
+    <div class="tip info">授權碼有效期約 10 分鐘，逾時就重新行一次 <code>login</code> 拿新連結。授權過一次之後，refresh token 自動續期，不需要再操作。</div>
+    <div class="tip warn">⚠️ <code>~/.hermes/skills/quarkclouddrive/</code> 內會存 access token —— 這個係敏感資料，公開 repo / 備份前一定要排除。</div>
   </div>
 
   <!-- 4. 授權 GDrive -->
   <div class="section" id="auth-gdrive">
     <h2 class="section-title"><span class="num">4</span> 授權 Google Drive API</h2>
-    <p class="section-desc">Google 側要喺 Cloud Console 開一個 OAuth Client，再授權一次，攞到 token 先可以讀寫你嘅 Drive。</p>
+    <p class="section-desc">Google 側要在 Cloud Console 開一個 OAuth Client，再授權一次，取得 token 先可以讀寫你的 Drive。</p>
 
     <div class="step-list" style="counter-reset:step 0">
       <div class="step-item">
         <h3>開 OAuth Client</h3>
-        <p>Google Cloud Console → APIs &amp; Services → OAuth consent screen（External + 加自己做測試使用者）→ Credentials → Create OAuth Client ID → 類型揀 <strong>Desktop app</strong> → 下載 <code>client_secret.json</code>。</p>
+        <p>Google Cloud Console → APIs &amp; Services → OAuth consent screen（External + 加自己做測試使用者）→ Credentials → Create OAuth Client ID → 類型選擇 <strong>Desktop app</strong> → 下載 <code>client_secret.json</code>。</p>
       </div>
       <div class="step-item">
         <h3>啟用 Drive API</h3>
         <div class="cmd"># Console → APIs &amp; Services → Library → 搜 "Google Drive API" → Enable</div>
       </div>
       <div class="step-item">
-        <h3>授權 + 攞 token</h3>
-        <p>用 <code>gws</code> CLI 或任何 OAuth 流程（本機開 browser → 授權 → 回調攞 code → 換 token.json）。之後所有 Drive 操作都用 <code>token.json</code>。</p>
+        <h3>授權 + 拿 token</h3>
+        <p>用 <code>gws</code> CLI 或任何 OAuth 流程（本機開 browser → 授權 → 回調拿 code → 換 token.json）。之後所有 Drive 操作都用 <code>token.json</code>。</p>
       </div>
       <div class="step-item">
         <h3>驗證</h3>
@@ -224,16 +224,16 @@ python3 google_api.py drive search "trashed = false" --max 10</div>
       </div>
     </div>
 
-    <div class="tip red">⚠️ OAuth 測試模式嘅 token 大約 7 日就過期。長期運行建議將 app 喺 consent screen 發佈（publish），或準備自動 refresh 流程，唔係就要定期重新授權。</div>
+    <div class="tip red">⚠️ OAuth 測試模式的 token 大約 7 日就過期。長期運行建議將 app 在 consent screen 發佈（publish），或準備自動 refresh 流程，不是就要定期重新授權。</div>
   </div>
 
   <!-- 5. 工作原理 -->
   <div class="section" id="how">
     <h2 class="section-title"><span class="num">5</span> 工作原理（同步引擎）</h2>
-    <p class="section-desc">同步引擎行三步：<strong>list → diff → transfer</strong>。每次運行都係咁樣循環，分別只在 diff 嘅規則。</p>
+    <p class="section-desc">同步引擎行三步：<strong>list → diff → transfer</strong>。每次運行都是這樣循環，分別只在 diff 的規則。</p>
 
     <div class="arch-flow">
-      <span>① List 兩邊</span><span class="arrow">→</span>
+      <span>① List 兩哪</span><span class="arrow">→</span>
       <span>② Diff（名+大小+時間）</span><span class="arrow">→</span>
       <span>③ Transfer 缺/變</span><span class="arrow">→</span>
       <span>④ 更新狀態</span><span class="arrow">→</span>
@@ -244,14 +244,14 @@ python3 google_api.py drive search "trashed = false" --max 10</div>
     <div class="table-wrap">
     <table>
       <tr><th>情況</th><th>單向（GDrive → 夸克）</th><th>單向（夸克 → GDrive）</th><th>雙向</th></tr>
-      <tr><td>A 有、B 冇</td><td>上傳去夸克</td><td>上傳去 GDrive</td><td>上傳去另一邊</td></tr>
-      <tr><td>兩邊都有、內容唔同</td><td>GDrive 版覆蓋夸克</td><td>夸克版覆蓋 GDrive</td><td>修改時間新者勝</td></tr>
-      <tr><td>兩邊一樣（名+大小+時間）</td><td colspan="3">跳過（唔浪費流量）</td></tr>
-      <tr><td>A 冇、B 有（刪除）</td><td>刪夸克 / 保留</td><td>刪 GDrive / 保留</td><td>⚠️ 要設規則（見 §7）</td></tr>
+      <tr><td>A 有、B 沒有</td><td>上傳去夸克</td><td>上傳去 GDrive</td><td>上傳去另一哪</td></tr>
+      <tr><td>兩哪都有、內容不同</td><td>GDrive 版覆蓋夸克</td><td>夸克版覆蓋 GDrive</td><td>修改時間新者勝</td></tr>
+      <tr><td>兩哪一樣（名+大小+時間）</td><td colspan="3">跳過（不浪費流量）</td></tr>
+      <tr><td>A 沒有、B 有（刪除）</td><td>刪夸克 / 保留</td><td>刪 GDrive / 保留</td><td>⚠️ 要設規則（見 §7）</td></tr>
     </table>
     </div>
 
-    <div class="tip info">🔑 <strong>關鍵限制：冇 server-to-server 直傳。</strong>檔案一定要經 VM 暫存（download 落嚟 → upload 上去）。所以 VM 要預留空間 ≈ 最大單一檔案 × 2。</div>
+    <div class="tip info">🔑 <strong>關鍵限制：沒有 server-to-server 直傳。</strong>檔案一定要經 VM 暫存（下載下來 → 上傳上去）。所以 VM 要預留空間 ≈ 最大單一檔案 × 2。</div>
   </div>
 
   <!-- 6. 單向同步 -->
@@ -307,30 +307,30 @@ if __name__ == "__main__":
     main()</div>
     <p style="font-size:13px;color:var(--dim)">↑ 完整版會加埋大小/修改時間比較、錯誤重試、日誌輸出 —— 上面係核心骨架，跑通先再擴充。</p>
 
-    <div class="tip green">✅ 單向同步最安全：master 永遠清晰，錯咗都只係備份副本過期，唔會搞亂原檔。</div>
+    <div class="tip green">✅ 單向同步最安全：master 永遠清晰，錯了都只是備份副本過期，不會搞亂原檔。</div>
   </div>
 
   <!-- 7. 雙向同步 -->
   <div class="section" id="twoway">
     <h2 class="section-title"><span class="num">7</span> 雙向同步進階</h2>
-    <p class="section-desc">雙向 = 兩邊都係 master。風險係衝突同刪除，所以要多做兩件事：<strong>修改時間比較</strong>同<strong>垃圾桶規則</strong>。</p>
+    <p class="section-desc">雙向 = 兩哪都是 master。風險係衝突同刪除，所以要多做兩件事：<strong>修改時間比較</strong>同<strong>垃圾桶規則</strong>。</p>
 
     <div class="step-list" style="counter-reset:step 0">
       <div class="step-item">
         <h3>修改時間（modifiedTime）係唯一仲裁</h3>
-        <p>兩邊都有同名檔 → 比較 <code>modifiedTime</code>（GDrive API 有；夸克 API 有 <code>updated_at</code>），新嘅覆蓋舊嘅。時間差少於 2 秒當相同（時鐘偏差容錯）。</p>
+        <p>兩哪都有同名檔 → 比較 <code>modifiedTime</code>（GDrive API 有；夸克 API 有 <code>updated_at</code>），新的覆蓋舊的。時間差少於 2 秒當相同（時鐘偏差容錯）。</p>
       </div>
       <div class="step-item">
         <h3>內容 hash 做二次確認</h3>
-        <p>同大小同時間唔等於同內容。穩陣起見：檔案 < 50MB 可以比對 MD5/SHA1（GDrive 有內建 MD5 checksum，夸克要下載先計到 —— 所以預設唔好咁做，太食流量）。<span class="badge warn">權衡</span></p>
+        <p>同大小同時間不等於同內容。為求穩妥：檔案 < 50MB 可以比對 MD5/SHA1（GDrive 有內建 MD5 checksum，夸克要下載才能計算 —— 所以預設不建議那麼做，太耗流量）。<span class="badge warn">權衡</span></p>
       </div>
       <div class="step-item">
         <h3>刪除要用「軟刪除」</h3>
-        <p>雙向同步最大地雷：A 刪咗個檔，同步過去會連 B 嗰份都刪。建議：唔同步刪除，或者刪之前先移去「垃圾桶」留 30 日。</p>
+        <p>雙向同步最大地雷：A 刪了檔案，同步過去會連 B 那份也刪除。建議：不同步刪除，或者刪除之前先移去「垃圾桶」保留 30 日。</p>
       </div>
     </div>
 
-    <div class="tip red">⚠️ 雙向同步唔建議一開波就用喺重要資料。先單向行一段時間，確認 diff 邏輯啱，先開雙向。</div>
+    <div class="tip red">⚠️ 雙向同步不建議一開波就用在重要資料。先單向行一段時間，確認 diff 邏輯合適，先開雙向。</div>
   </div>
 
   <!-- 8. Cron -->
@@ -343,46 +343,46 @@ if __name__ == "__main__":
 */30 * * * * cd /home/ubuntu/sync && /usr/bin/python3 gdrive2quark.py >> sync.log 2>&1
 # 或者每日凌晨 3 點做一次全量
 0 3 * * * cd /home/ubuntu/sync && /usr/bin/python3 gdrive2quark.py >> sync.log 2>&1
-# 雙向同步建議錯開兩個方向嘅時間
+# 雙向同步建議錯開兩個方向的時間
 */30 * * * * cd /home/ubuntu/sync && /usr/bin/python3 sync_both.py >> sync.log 2>&1</div>
 
-    <div class="tip warn">⚠️ cron 環境 PATH 好精簡（/usr/bin:/bin）—— script 入面所有命令要用絕對路徑（<code>/usr/bin/python3</code>、<code>~/bin/... 展開</code>），唔好淨係寫 <code>python3</code>，唔係 cron 行會搵唔到。</div>
-    <div class="tip info">日誌會越嚟越大，加一行 logrotate：<code>*/30 * * * *</code> 嗰行改用 <code>&gt;&gt; sync.log</code>，然後每週手動 <code>truncate -s 0 sync.log</code> 或裝 logrotate。</div>
+    <div class="tip warn">⚠️ cron 環境 PATH 非常精簡（/usr/bin:/bin）—— script 入面所有命令要用絕對路徑（<code>/usr/bin/python3</code>、<code>~/bin/... 展開</code>），不要只寫 <code>python3</code>，否則 cron 執行時會找不到。</div>
+    <div class="tip info">日誌會越來越大，加一行 logrotate：<code>*/30 * * * *</code> 那一行改用 <code>&gt;&gt; sync.log</code>，然後每週手動 <code>truncate -s 0 sync.log</code> 或安裝 logrotate。</div>
   </div>
 
   <!-- 9. 系統負荷 -->
   <div class="section" id="load">
     <h2 class="section-title"><span class="num">9</span> 系統負荷估算</h2>
-    <p class="section-desc">同步係「輕量但間歇性」嘅 workload：平時幾乎零負載，傳大檔嗰陣先食資源。以下係實測數量級：</p>
+    <p class="section-desc">同步是「輕量但間歇性」的 workload：平時幾乎零負載，傳大檔時才消耗資源。以下是實測數量級：</p>
 
     <div class="table-wrap">
     <table>
       <tr><th>項目</th><th>估算</th><th>備註</th></tr>
-      <tr><td>CPU（list + diff）</td><td>&lt; 5 秒 / 1000 檔</td><td>主要係 API 回應等待，唔係運算</td></tr>
+      <tr><td>CPU（list + diff）</td><td>&lt; 5 秒 / 1000 檔</td><td>主要係 API 回應等待，不是運算</td></tr>
       <tr><td>CPU（傳檔）</td><td>單核心 20–40%</td><td>上傳/下載壓縮加密，短暫</td></tr>
       <tr><td>記憶體</td><td>30–80 MB</td><td>Python + 兩個 CLI 子進程</td></tr>
-      <tr><td>VM 暫存磁碟</td><td>最大單檔 × 2</td><td>download 落嚟 + upload 緊嗰陣同時存在</td></tr>
+      <tr><td>VM 暫存磁碟</td><td>最大單檔 × 2</td><td>下載下來 + 上傳進行中同時存在</td></tr>
       <tr><td>網絡流量</td><td>每次 = 變更檔案總量 × 2</td><td>GDrive 下載 + 夸克上傳，各計一次</td></tr>
       <tr><td>API 配額（GDrive）</td><td>list 1 req + 每檔 download 1 req</td><td>免費 quota 每日約 100 萬次，家用 100 萬倍有餘</td></tr>
-      <tr><td>API 配額（夸克）</td><td>search 1 req + 每檔 upload 1 req</td><td>免費額度內，但唔好狂刷（見 §10）</td></tr>
-      <tr><td>Oracle Always Free 夠唔夠</td><td>✅ 綽綽有餘</td><td>2 OCPU / 12GB 行 cron 同步完全冇壓力</td></tr>
+      <tr><td>API 配額（夸克）</td><td>search 1 req + 每檔 upload 1 req</td><td>免費額度內，但不要狂刷（見 §10）</td></tr>
+      <tr><td>Oracle Always Free 夠不夠</td><td>✅ 綽綽有餘</td><td>2 OCPU / 12GB 行 cron 同步完全沒有壓力</td></tr>
     </table>
     </div>
 
-    <div class="tip info">🟢 100 個 5MB 檔案首次全量同步 ≈ 1GB 流量 + 約 10–20 分鐘（視乎兩邊網速）。之後每次只傳變更，通常幾十秒搞掂。</div>
+    <div class="tip info">🟢 100 個 5MB 檔案首次全量同步 ≈ 1GB 流量 + 約 10–20 分鐘（視乎兩哪網速）。之後每次只傳變更，通常幾十秒完成。</div>
   </div>
 
   <!-- 10. 踩坑 -->
   <div class="section" id="pitfalls">
     <h2 class="section-title"><span class="num">10</span> 踩坑合集（全部親測）</h2>
 
-    <div class="tip red"><strong>夸克 login 喺 server 無 browser 即刻 fail</strong> —— 唔使慌，條授權 URL 喺錯誤訊息入面，複製出嚟俾用戶開就得；授權後複製 <code>AAC-xxx</code> 授權碼返嚟用 <code>login --token</code> 綁定。</div>
+    <div class="tip red"><strong>夸克 login 在 server 沒有 browser 即刻 fail</strong> —— 不用慌，授權 URL 在錯誤訊息內，複製出來給用戶打開即可；授權後複製 <code>AAC-xxx</code> 授權碼回來用 <code>login --token</code> 綁定。</div>
     <div class="tip red"><strong>GDrive OAuth 測試模式 token 7 日死</strong> —— 長跑要 publish consent screen 或者加自動 refresh。</div>
-    <div class="tip warn"><strong>夸克 API 有速率限制</strong> —— 全量同步幾百個檔要分批次 + sleep，唔好一次過狂 request，會 429。</div>
-    <div class="tip warn"><strong>VM 暫存空間</strong> —— 傳 10GB 大檔前檢查 <code>df -h</code>，唔夠位會 sync 失敗（temp 檔要即傳即刪）。</div>
-    <div class="tip info"><strong>cron 見唔到命令</strong> —— 用絕對路徑 + 開頭 <code>cd</code>，仲要確認 script 有 <code>chmod +x</code> 或者用 <code>/usr/bin/python3</code> 直接叫。</div>
-    <div class="tip info"><strong>檔名 Unicode / 空格</strong> —— 兩個 API 對檔名處理唔同，同步 script 入面檔名要統一用 UTF-8 並正確 quote。</div>
-    <div class="tip green"><strong>token 檔案唔好入 git</strong> —— 夸克 access token + GDrive token.json 都係敏感資料，sync 項目 repo 要加 <code>.gitignore</code>。</div>
+    <div class="tip warn"><strong>夸克 API 有速率限制</strong> —— 全量同步幾百個檔要分批次 + sleep，不要一次過度請求，會 429。</div>
+    <div class="tip warn"><strong>VM 暫存空間</strong> —— 傳 10GB 大檔前檢查 <code>df -h</code>，不夠位會 sync 失敗（temp 檔要即傳即刪）。</div>
+    <div class="tip info"><strong>cron 見不到命令</strong> —— 用絕對路徑 + 開頭 <code>cd</code>，仲要確認 script 有 <code>chmod +x</code> 或者用 <code>/usr/bin/python3</code> 直接叫。</div>
+    <div class="tip info"><strong>檔名 Unicode / 空格</strong> —— 兩個 API 對檔名處理不同，同步 script 入面檔名要統一用 UTF-8 並正確 quote。</div>
+    <div class="tip green"><strong>token 檔案不要放進 git</strong> —— 夸克 access token + GDrive token.json 都都是敏感資料，sync 項目 repo 要加 <code>.gitignore</code>。</div>
   </div>
 
   <!-- 11. 命令速查 -->
@@ -396,10 +396,10 @@ if __name__ == "__main__":
       <tr><td><code>node quark-drive.cjs download --fid "..."</code></td><td>下載夸克檔案</td></tr>
       <tr><td><code>node quark-drive.cjs create-folder "名"</code></td><td>開資料夾</td></tr>
       <tr><td><code>node quark-drive.cjs share --fid "..."</code></td><td>分享連結</td></tr>
-      <tr><td><code>node quark-drive.cjs whoami</code> / <code>login --token AAC-...</code></td><td>睇帳號 / 綁定授權</td></tr>
+      <tr><td><code>node quark-drive.cjs whoami</code> / <code>login --token AAC-...</code></td><td>看帳號 / 綁定授權</td></tr>
       <tr><td><code>gws drive search "trashed = false" --max 100</code></td><td>列 GDrive 檔案</td></tr>
       <tr><td><code>gws drive download &lt;file_id&gt; --output 路徑</code></td><td>下載 GDrive 檔案</td></tr>
-      <tr><td><code>crontab -e</code> / <code>crontab -l</code></td><td>編輯 / 睇排程</td></tr>
+      <tr><td><code>crontab -e</code> / <code>crontab -l</code></td><td>編輯 / 看排程</td></tr>
     </table>
     </div>
   </div>
@@ -424,12 +424,12 @@ if __name__ == "__main__":
     <div class="table-wrap">
     <table>
       <tr><th>□</th><th>檢查項</th></tr>
-      <tr><td>□</td><td>夸克 CLI 行到 <code>--version</code>，<code>search</code> 搜到網盤檔案</td></tr>
+      <tr><td>□</td><td>夸克 CLI 執行 <code>--version</code>，<code>search</code> 搜到網盤檔案</td></tr>
       <tr><td>□</td><td>GDrive <code>gws drive search</code> 出到檔案列表</td></tr>
-      <tr><td>□</td><td>sync script 手動行一次成功（唔好直接上 cron）</td></tr>
-      <tr><td>□</td><td>目標 folder 兩邊檔案數一致（<code>search --keyword</code> 對數）</td></tr>
+      <tr><td>□</td><td>sync script 手動行一次成功（不要直接上 cron）</td></tr>
+      <tr><td>□</td><td>目標 folder 兩哪檔案數一致（<code>search --keyword</code> 對數）</td></tr>
       <tr><td>□</td><td>cron 加入 + 等一個週期，確認 <code>sync.log</code> 有新輸出</td></tr>
-      <tr><td>□</td><td>token 檔案確認冇入任何 git repo</td></tr>
+      <tr><td>□</td><td>token 檔案確認沒有入任何 git repo</td></tr>
     </table>
     </div>
   </div>
@@ -443,8 +443,16 @@ if __name__ == "__main__":
   </div>
 
   <div class="footer">
-    <p>版本 v1.0 · 最後更新 2026-08-14 · 夸克網盤 × Google Drive 同步 101</p>
-    <p style="margin-top:6px">用開放 API 打通兩個網盤，檔案喺邊都唔使驚。</p>
+  <p>版本 v1.0 · 最後更新 2026-08-14 · 夸克網盤 × Google Drive 同步 101</p>
+  <p style="margin-top:6px">用開放 API 打通兩個網盤，檔案在任何地方都不用擔心。</p>
+  </div>
+
+  <div style="text-align:center;padding:28px 20px 40px;margin-top:40px;border-top:1px solid var(--border,rgba(255,255,255,.08));background:var(--card,#171e2e);color:var(--dim,#93a0bd);font-size:13px">
+  <p style="margin:0 0 14px">喜歡這份教學？請我飲杯咖啡 ☕</p>
+  <a href="https://ko-fi.com/forumdata" target="_blank" style="display:inline-flex;align-items:center;gap:10px;padding:12px 28px;background:#ff5e5b;color:#fff;text-decoration:none;border-radius:8px;font-weight:600;font-size:15px;">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M23.881 8.948c-.773-4.085-4.859-4.593-4.859-4.593H.723c-.604 0-.679.798-.679.798s-.082 7.324-.022 11.822c.164 2.424 2.586 2.672 2.586 2.672s8.267-.023 11.966-.049c2.438-.426 2.683-2.566 2.658-3.734 4.47.06 8.529-1.723 8.649-4.916zm-11.638 8.978c-2.252 0-4.078-1.826-4.078-4.078s1.826-4.078 4.078-4.078 4.078 1.826 4.078 4.078-1.826 4.078-4.078z"/></svg>
+    ☕ 請我飲咖啡
+  </a>
   </div>
 
 </div>
