@@ -19,6 +19,7 @@
 ## 技術摘要
 
 - **同步媒介**：夸克網盤官方開放 API + Google Drive API v3
+- **大檔繞道**：開放 API 下載限 50MB → 用 AList + QuarkTV driver 攞直鏈（§12，實測 85MB+ 冇問題）
 - **仲裁規則**：`modifiedTime` 是唯一仲裁；內容 hash 做二次確認；刪除統一用「軟刪除」（避免雙向刪除互相覆寫）
 - **執行環境**：雲端 VM（本指南實測於 Oracle Cloud ARM instance）
 - **成本**：兩個平台免費額度內完全免費

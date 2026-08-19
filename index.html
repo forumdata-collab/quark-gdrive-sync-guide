@@ -378,6 +378,7 @@ if __name__ == "__main__":
 
     <div class="tip red"><strong>夸克 login 在 server 沒有 browser 即刻 fail</strong> —— 不用慌，授權 URL 在錯誤訊息內，複製出來給用戶打開即可；授權後複製 <code>AAC-xxx</code> 授權碼回來用 <code>login --token</code> 綁定。</div>
     <div class="tip red"><strong>GDrive OAuth 測試模式 token 7 日死</strong> —— 長跑要 publish consent screen 或者加自動 refresh。</div>
+    <div class="tip warn"><strong>夸克下載有 50MB 上限</strong> —— open API (<code>third_party_agent</code>) server-side cap（<code>23018</code>）。大檔要經 AList QuarkTV 攞直鏈（見 §12），唔好响 CLI download 度硬試。</div>
     <div class="tip warn"><strong>夸克 API 有速率限制</strong> —— 全量同步幾百個檔要分批次 + sleep，不要一次過度請求，會 429。</div>
     <div class="tip warn"><strong>VM 暫存空間</strong> —— 傳 10GB 大檔前檢查 <code>df -h</code>，不夠位會 sync 失敗（temp 檔要即傳即刪）。</div>
     <div class="tip info"><strong>cron 見不到命令</strong> —— 用絕對路徑 + 開頭 <code>cd</code>，仲要確認 script 有 <code>chmod +x</code> 或者用 <code>/usr/bin/python3</code> 直接叫。</div>
@@ -393,7 +394,8 @@ if __name__ == "__main__":
       <tr><th>命令</th><th>作用</th></tr>
       <tr><td><code>node quark-drive.cjs search --keyword "K"</code></td><td>搜尋夸克檔案</td></tr>
       <tr><td><code>node quark-drive.cjs upload "file" --name "名"</code></td><td>上傳去夸克</td></tr>
-      <tr><td><code>node quark-drive.cjs download --fid "..."</code></td><td>下載夸克檔案</td></tr>
+      <tr><td><code>node quark-drive.cjs download --fid "..."</code></td><td>下載夸克檔案（⚠️ 限 50MB 以下）</td></tr>
+      <tr><td><code>alist server</code> → <code>/api/fs/get</code></td><td>>50MB 用 AList QuarkTV 攞直鏈（見 §12）</td></tr>
       <tr><td><code>node quark-drive.cjs create-folder "名"</code></td><td>開資料夾</td></tr>
       <tr><td><code>node quark-drive.cjs share --fid "..."</code></td><td>分享連結</td></tr>
       <tr><td><code>node quark-drive.cjs whoami</code> / <code>login --token AAC-...</code></td><td>看帳號 / 綁定授權</td></tr>
@@ -402,6 +404,45 @@ if __name__ == "__main__":
       <tr><td><code>crontab -e</code> / <code>crontab -l</code></td><td>編輯 / 看排程</td></tr>
     </table>
     </div>
+  </div>
+
+  <!-- 12. 大檔繞道 -->
+  <div class="section" id="bigfile">
+    <h2 class="section-title"><span class="num">12</span> 大檔下載繞道：AList + QuarkTV（50MB 上限破解）</h2>
+    <p class="section-desc">開放 API（<code>third_party_agent</code> client）下載有 <strong>50MB 上限</strong>（錯誤 <code>23018 download file size limit[52428800]</code>），係 server-side 限制——換 token、重新授權都冇用。實測破解：<strong>AList 掛 QuarkTV driver</strong>，用 TV 客戶端憑證行同一開放 API，冇 50MB cap，海外 VM 都用到。</p>
+
+    <div class="step-list" style="counter-reset:step 0">
+      <div class="step-item">
+        <h3>裝 AList（單檔 binary）</h3>
+        <div class="cmd"># x86_64 → alist-linux-amd64.tar.gz；ARM（Oracle 免費 VM 常見）→ alist-linux-arm64.tar.gz
+curl -L -o alist.tar.gz https://github.com/alist-org/alist/releases/latest/download/alist-linux-arm64.tar.gz
+tar xzf alist.tar.gz
+./alist admin set '你的密碼'
+./alist server        # 預設 :5244</div>
+      </div>
+      <div class="step-item">
+        <h3>加 QuarkTV 儲存（唔使 cookie！）</h3>
+        <p>AList 後台 → 儲存 → 新增 → Driver 揀 <strong>QuarkTV</strong> → mount path 隨意（如 <code>/quarktv</code>）→ 儲存。</p>
+        <p>AList 會即場生成一個 QR——用<a href="https://pan.quark.cn" target="_blank">夸克網盤 App</a>（手機）入面嘅「掃一掃」掃佢並確認授權，AList 自動攞 token 完成綁定。<span class="badge warn">唔需要網頁版 cookie</span></p>
+      </div>
+      <div class="step-item">
+        <h3>設根目錄 ID</h3>
+        <p>儲存設定入面 <code>root_folder_id</code> 填 <code>0</code>（網盤根目錄；子資料夾就填網址列嘅目錄 ID），唔填會報 <code>parent_fid不允许为空</code>。</p>
+      </div>
+      <div class="step-item">
+        <h3>攞直鏈 / 下載</h3>
+        <div class="cmd"># 列目錄
+curl -X POST http://127.0.0.1:5244/api/fs/list -H "Authorization: &lt;token&gt;" \
+  -H "Content-Type: application/json" -d '{"path":"/quarktv/資料夾","page":1,"per_page":50,"refresh":true}'
+# 攞下載直鏈
+curl -X POST http://127.0.0.1:5244/api/fs/get -H "Authorization: &lt;token&gt;" \
+  -H "Content-Type: application/json" -d '{"path":"/quarktv/資料夾/大檔.mp4"}'
+# → data.raw_url 即係直鏈，直接 curl 落嚟就得</div>
+      </div>
+    </div>
+
+    <div class="tip info">✅ <strong>實測（2026-08，Oracle ARM VM + 手機掃 QR 授權）</strong>：85MB PDF 完整下載成功（byte 數完全一致）；2.6GB 影片攞到直鏈。整個流程唔使 cookie、唔使桌面瀏覽器，海外 VM 直接用。</div>
+    <div class="tip warn">⚠️ <strong>限制</strong>：課件類檔案（錄屏/受保護內容）會 <code>38001 文件禁止下載</code>；普通 mp4 / pdf / epub 冇問題。QuarkTV 係 TV 客戶端，只支援 List + Download（唔支援上傳）。</div>
   </div>
 
   <!-- 附錄 -->
